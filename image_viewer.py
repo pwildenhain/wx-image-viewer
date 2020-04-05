@@ -1,9 +1,11 @@
 import wx
+import math
 
 
 class ImagePanel(wx.Panel):
     def __init__(self, parent, image_size):
         super().__init__(parent)
+        self.max_size = 240
 
         img = wx.Image(*image_size)
         self.image_ctrl = wx.StaticBitmap(self, bitmap=wx.Bitmap(img))
@@ -38,6 +40,28 @@ class ImagePanel(wx.Panel):
         ) as dialog:
             if dialog.ShowModal() == wx.ID_OK:
                 self.photo_text.SetValue(dialog.GetPath())
+                self.load_image()
+
+    def load_image(self):
+        """Load the image an display it to the user"""
+        file_path = self.photo_text.GetValue()
+        img = wx.Image(file_path, wx.BITMAP_TYPE_ANY)
+
+        # scale the image, preserving the aspect ratio
+        width = img.GetWidth()
+        height = img.GetHeight()
+
+        if width > height:
+            new_width = self.max_size
+            new_height = math.ceil(self.max_size * height / width)
+        else:
+            new_height = self.max_size
+            new_width = math.ceil(self.max_size * width / height)
+
+        img = img.Scale(new_width, new_height)
+
+        self.image_ctrl.SetBitmap(wx.Bitmap(img))
+        self.Refresh()
 
 
 class MainFrame(wx.Frame):
